@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#define HASHSIZE 2
+#define HASHSIZE 100
 #define BOOL int
 #define TRUE 1
 #define FALSE 0
