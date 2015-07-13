@@ -3,8 +3,9 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <errno.h>
 
-#define PORT 10234
+#define PORT 53
 
 int main() 
 {
@@ -20,6 +21,7 @@ int main()
 
 	if (bind(sockfd, (struct sockaddr *)(&serverAddr), sizeof(serverAddr)) == -1) {
 		printf("Bind Fail\n");
+		printf("%s\n", strerror(errno));
 		return -1;
 	}
 
