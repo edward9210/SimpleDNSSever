@@ -79,3 +79,4 @@ typedef struct _DNSANSWER {
 void createDNSQuery(char *name, char *buf);
 void createDNSAnswer(char *ip, char *buf, char *dnsq);
 int chName(char *fname, char *tname);
+void printDNSQuery(char *mes, char *name);

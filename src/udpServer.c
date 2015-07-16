@@ -8,6 +8,7 @@
 #include <fcntl.h>
 
 #include "hashTable.h"
+#include "dns.h"
 
 #define PORT 53
 
@@ -94,9 +95,16 @@ int main(int argc, char *argv[])
 		socklen_t len;
 		len = sizeof(clientAddr);
 		recvfrom(sockfd, message, sizeof(message), 0, (struct sockaddr *)(&clientAddr), &len);
-		for (int i = 0; i < 100; i++)
-			printf("%c", message[i]);
-		printf("\n");
+		char name[64];
+		memset(name, 0, sizeof(name));
+		printDNSQuery(message, name);
+		HashNode* ans = search(name);
+		if (ans){
+			printf("%s\n", ans->ip);
+		}
+		else {
+			printf("DNS request timed out.\n");
+		}
 	}
 
 	return 0;

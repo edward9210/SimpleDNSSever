@@ -48,3 +48,39 @@ int chName(char *fname, char *tname) {
 	tname[0] = j;
 	return strlen(tname) + 1;
 }
+
+void printDNSQuery(char *mes, char *name) {
+	DnsHead *dnsh = (DnsHead*) mes;
+	printf("***************************************\n");
+	printf("             DNS Header : \n");
+	printf("id : %#x\n", ntohs(dnsh->id));
+	printf("tag : %#x\n", ntohs(dnsh->tag));
+	printf("qdcount : %d\n", ntohs(dnsh->qdcount));
+	printf("ancount : %d\n", ntohs(dnsh->ancount));
+	printf("nscount : %d\n", ntohs(dnsh->nscount));
+	printf("arcount : %d\n", ntohs(dnsh->arcount));
+	for (int j = 0; j < (int)ntohs(dnsh->qdcount); j++) {
+		char *ptr = (char *)(mes + sizeof(DnsHead));
+		int count = (int) *ptr;
+		int pos = 0;
+		ptr += 1;
+		while (1) {
+			for (int i = 0; i < count; i++, pos++, ptr++)
+				name[pos] = *ptr;
+			name[pos] = '.';
+			pos++;
+			count = (int) *ptr;
+			ptr++;
+			if (count == 0)
+				break;	
+		}
+		name[pos - 1] = '\0';
+		printf("qname : %s\n", name);
+		DnsQuery *dnsq = (DnsQuery*) ptr;
+		printf("qtype : %#x\n", ntohs(dnsq->qtype));
+		printf("qclass : %#x\n", ntohs(dnsq->qclass));
+		// if dns query is not A query, ignore it and return '\0'
+		if (ntohs(dnsq->qtype) != 0x1)
+			name[0] = '\0';
+	}
+}
