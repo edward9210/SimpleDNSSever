@@ -34,8 +34,12 @@ BOOL add(char *name, char *ip) {
 	ptr = hashTable[h];
 	HashNode* tmp;
 	tmp = (HashNode*)malloc(sizeof(HashNode));
-	tmp->name = name;
-	tmp->ip = ip;
+	tmp->name = (char*)malloc(sizeof(char)  * (strlen(name) + 1));
+	tmp->ip = (char*)malloc(sizeof(char)  * (strlen(ip) + 1));
+	strcpy(tmp->name, name);
+	tmp->name[strlen(name)] = '\0';
+	strcpy(tmp->ip, ip);
+	tmp->ip[strlen(ip)] = '\0';
 	tmp->next = NULL;
 	if (ptr == NULL) {
 		hashTable[h] = tmp;
