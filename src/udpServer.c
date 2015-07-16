@@ -101,6 +101,9 @@ int main(int argc, char *argv[])
 		HashNode* ans = search(name);
 		if (ans){
 			printf("%s\n", ans->ip);
+			char dnsAnswer[1024];
+			createDNSAnswer(ans->ip, dnsAnswer, message);
+			sendto(sockfd, dnsAnswer, sizeof(dnsAnswer), 0, (struct sockaddr *)&clientAddr, sizeof(clientAddr));
 		}
 		else {
 			printf("DNS request timed out.\n");

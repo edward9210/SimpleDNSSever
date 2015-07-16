@@ -3,7 +3,7 @@
 void createDNSQuery(char *name, char *buf) {
 	DnsHead *dnsh;
 	DnsQuery *dnsq;
-	char *tmp;
+	char *qnameSection;
 	int lenOfName;
 
 	// init buf
@@ -12,22 +12,75 @@ void createDNSQuery(char *name, char *buf) {
 	// set dns header
 	dnsh = (DnsHead *)buf;
 	dnsh->id = htons(HEAD_ID);
-	dnsh->tag = htons(TAG);
+	dnsh->tag = htons(QUERY_TAG);
 	dnsh->qdcount = htons(1);
 	dnsh->ancount = 0;
 	dnsh->nscount = 0;
 	dnsh->arcount = 0;
 
 	// set dns query
-	tmp = (char *)(buf + sizeof(DnsHead));
-	lenOfName = chName(name, tmp);
-	dnsq = (DnsQuery *)(tmp + lenOfName);
+	qnameSection = (char *)(buf + sizeof(DnsHead));
+	lenOfName = chName(name, qnameSection);
+	dnsq = (DnsQuery *)(qnameSection + lenOfName);
 	dnsq->qtype = htons(1);
 	dnsq->qclass = htons(1);
 }
 
-void createDNSAnswer(char *ip, char *buf, char *dnsq) {
+void createDNSAnswer(char *ip, char *buf, char *dnsOriginQuery) {
+	DnsHead *dnsh, *originHeader;
+	DnsQuery *dnsq, *originQuery;
+	DnsAnswer *dnsa;
+	originHeader = (DnsHead *)dnsOriginQuery;
 
+	// init buf
+	memset(buf, 0, sizeof(DnsHead));
+
+	// set dns header  
+	dnsh = (DnsHead *)buf;
+	dnsh->id = originHeader->id;
+	dnsh->tag = htons(ANSWER_TAG);
+	dnsh->qdcount = originHeader->qdcount;
+	dnsh->ancount = htons(1);
+	dnsh->nscount = 0;
+	dnsh->arcount = 0;
+
+	// set dns query section (the same as dnsOriginQuery)
+	int count, lenOfNameSection;
+	lenOfNameSection = 0;
+	char *fptr, *tptr;
+	fptr = (char *)(dnsOriginQuery + sizeof(DnsHead));
+	tptr = (char *)(buf + sizeof(DnsHead));
+	*tptr = *fptr;
+	count = (int) *fptr;
+	fptr++;
+	tptr++;
+	lenOfNameSection++;
+	while (*fptr != 0) {
+		for (int i = 0; i < count; i++) {
+			*tptr = *fptr;
+			fptr++;
+			tptr++;
+			lenOfNameSection++;
+		}
+		*tptr = *fptr;
+		count = (int) *fptr;
+		fptr++;
+		tptr++;
+		lenOfNameSection++;
+	} 
+	originQuery = (DnsQuery *)fptr;
+	dnsq = (DnsQuery *)tptr;
+	dnsq->qtype = originQuery->qtype;
+	dnsq->qclass = originQuery->qclass;
+
+	// set dns answer section
+	dnsa = (DnsAnswer *)(buf + sizeof(DnsHead) + lenOfNameSection + sizeof(DnsQuery));
+	dnsa->name = htons(ANSWER_NAME);
+	dnsa->type = originQuery->qtype;
+	dnsa->cls = originQuery->qclass;
+	dnsa->ttl = htonl(600);
+	dnsa->rdlen = htons(4);
+	dnsa->rddata = inet_addr(ip);
 }
 
 int chName(char *fname, char *tname) {
