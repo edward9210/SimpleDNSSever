@@ -1,3 +1,13 @@
+/************************************************************
+**  Copyright (C) 2015-2016, XXX Co. Ltd.
+**  All rights reserved.
+**
+**  FileName: udpSever.h
+**  Description: a dns udp sever
+**  Author: Guocheng Wu
+**  Date: 2015.7.17
+**  Others: None  
+***********************************************************/
 #include <sys/socket.h>
 #include <stdio.h>
 #include <sys/types.h>
@@ -18,7 +28,8 @@ int main(int argc, char *argv[])
 	char path[128];
 	int lenPath = 0;
 	char *tmp = argv[0], *pos;
-	while (1) {
+	while (1) 
+	{
 		pos = strchr(tmp, '/');
 		if (pos == NULL)
 			break;
@@ -33,36 +44,44 @@ int main(int argc, char *argv[])
     // read config.txt
 	char str[64];
 	FILE *fp;
-
-	if ((fp = fopen("../config/config.txt", "r")) == NULL) {
+	if ((fp = fopen("../config/config.txt", "r")) == NULL) 
+	{
 		printf("Read config error\n");
 		return -1;
 	}
 
 	// read and bulid hashtable
 	initHashTable();
-	while (!feof(fp)) {
+	while (!feof(fp)) 
+	{
 		fgets(str, 64, fp);
 		char name[64], ip[64];
 		char *ptr;
 		int lenIP = strchr(str, ' ') - str;
 		int lenName;
-		if (strchr(str, '\n') != NULL)
+		if (strchr(str, '\n') != NULL) 
+		{
 			lenName = strchr(str, '\n') - strchr(str, ' ') - 1;
+		}
 		else
+		{
 			lenName = strlen(str) - lenIP - 1;
+		}
 		ptr = str;
 		for (int i = 0; i < lenIP; i++, ptr++)
+		{
 			ip[i] = *ptr;
+		}
 		ip[lenIP] = '\0';
 		ptr += 1;
 		for (int i = 0; i < lenName; i++, ptr++)
+		{
 			name[i] = *ptr;
+		}
 		name[lenName] = '\0';
 		// printf ("%s --> %s\n", name, ip);
 		add(name, ip);
 	}
-
 	fclose(fp);
 
 	dispalyTable();
@@ -78,7 +97,8 @@ int main(int argc, char *argv[])
 	serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	serverAddr.sin_port = htons(PORT);
 
-	if (bind(sockfd, (struct sockaddr *)(&serverAddr), sizeof(serverAddr)) == -1) {
+	if (bind(sockfd, (struct sockaddr *)(&serverAddr), sizeof(serverAddr)) == -1) 
+	{
 		printf("Bind Fail\n");
 		printf("%s\n", strerror(errno));
 		return -1;
@@ -89,23 +109,29 @@ int main(int argc, char *argv[])
 	printf("***************************************\n");
 	printf("listening port %d\n", PORT);
 
+	// recive message from clients
 	char message[1024];
 
-	while (1) {
+	while (1) 
+	{
 		socklen_t len;
 		len = sizeof(clientAddr);
 		recvfrom(sockfd, message, sizeof(message), 0, (struct sockaddr *)(&clientAddr), &len);
+
+		//handle message from clients
 		char name[64];
 		memset(name, 0, sizeof(name));
 		printDNSQuery(message, name);
 		HashNode* ans = search(name);
-		if (ans){
+		if (ans)
+		{
 			printf("%s\n", ans->ip);
 			char dnsAnswer[1024];
 			createDNSAnswer(ans->ip, dnsAnswer, message);
 			sendto(sockfd, dnsAnswer, sizeof(dnsAnswer), 0, (struct sockaddr *)&clientAddr, sizeof(clientAddr));
 		}
-		else {
+		else 
+		{
 			printf("DNS request timed out.\n");
 		}
 	}

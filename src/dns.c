@@ -1,6 +1,17 @@
+/************************************************************
+**  Copyright (C) 2015-2016, XXX Co. Ltd.
+**  All rights reserved.
+**
+**  FileName: dns.c
+**  Description: the implementation of dns.h
+**  Author: Guocheng Wu
+**  Date: 2015.7.17
+**  Others: None  
+***********************************************************/
 #include "dns.h"
 
-void createDNSQuery(char *name, char *buf) {
+void createDNSQuery(char *name, char *buf) 
+{
 	DnsHead *dnsh;
 	DnsQuery *dnsq;
 	char *qnameSection;
@@ -26,7 +37,8 @@ void createDNSQuery(char *name, char *buf) {
 	dnsq->qclass = htons(1);
 }
 
-void createDNSAnswer(char *ip, char *buf, char *dnsOriginQuery) {
+void createDNSAnswer(char *ip, char *buf, char *dnsOriginQuery) 
+{
 	DnsHead *dnsh, *originHeader;
 	DnsQuery *dnsq, *originQuery;
 	DnsAnswer *dnsa;
@@ -55,8 +67,10 @@ void createDNSAnswer(char *ip, char *buf, char *dnsOriginQuery) {
 	fptr++;
 	tptr++;
 	lenOfNameSection++;
-	while (*fptr != 0) {
-		for (int i = 0; i < count; i++) {
+	while (*fptr != 0) 
+	{
+		for (int i = 0; i < count; i++) 
+		{
 			*tptr = *fptr;
 			fptr++;
 			tptr++;
@@ -83,7 +97,8 @@ void createDNSAnswer(char *ip, char *buf, char *dnsOriginQuery) {
 	dnsa->rddata = inet_addr(ip);
 }
 
-int chName(char *fname, char *tname) {
+int chName(char *fname, char *tname) 
+{
 	int i = strlen(fname) - 1;
 	int j = 0;
 	int k = i + 1;
@@ -102,7 +117,8 @@ int chName(char *fname, char *tname) {
 	return strlen(tname) + 1;
 }
 
-void printDNSQuery(char *mes, char *name) {
+void printDNSQuery(char *mes, char *name) 
+{
 	DnsHead *dnsh = (DnsHead*) mes;
 	printf("***************************************\n");
 	printf("             DNS Header : \n");
@@ -112,28 +128,37 @@ void printDNSQuery(char *mes, char *name) {
 	printf("ancount : %d\n", ntohs(dnsh->ancount));
 	printf("nscount : %d\n", ntohs(dnsh->nscount));
 	printf("arcount : %d\n", ntohs(dnsh->arcount));
-	for (int j = 0; j < (int)ntohs(dnsh->qdcount); j++) {
+	for (int j = 0; j < (int)ntohs(dnsh->qdcount); j++) 
+	{
 		char *ptr = (char *)(mes + sizeof(DnsHead));
 		int count = (int) *ptr;
 		int pos = 0;
 		ptr += 1;
-		while (1) {
+		while (1) 
+		{
 			for (int i = 0; i < count; i++, pos++, ptr++)
+			{
 				name[pos] = *ptr;
+			}
 			name[pos] = '.';
 			pos++;
 			count = (int) *ptr;
 			ptr++;
 			if (count == 0)
+			{
 				break;	
+			}
 		}
 		name[pos - 1] = '\0';
 		printf("qname : %s\n", name);
 		DnsQuery *dnsq = (DnsQuery*) ptr;
 		printf("qtype : %#x\n", ntohs(dnsq->qtype));
 		printf("qclass : %#x\n", ntohs(dnsq->qclass));
+		
 		// if dns query is not A query, ignore it and return '\0'
 		if (ntohs(dnsq->qtype) != 0x1)
+		{
 			name[0] = '\0';
+		}
 	}
 }
